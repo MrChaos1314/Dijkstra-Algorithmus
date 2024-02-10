@@ -42,12 +42,21 @@ public class Main {
         while (!g.allVerticesMarked()) {
             currentVNeighbours = g.getNeighbours(currentV);
             currentVNeighbours.toFirst();
+
             while (currentVNeighbours.hasAccess()) {
-                if (vertexHasDistance(vertices, vertexDistance, currentV) == false) {
-                    vertexSetDistance(vertices, vertexDistance, currentV);
-                    currentV.setMark(true);
+                if (vertexHasDistance(vertices, vertexDistance, currentVNeighbours.getContent()) == false) {
+                    vertexSetDistance(vertices, vertexDistance, currentV, currentVNeighbours.getContent());
+                    g.getEdge(currentV, currentVNeighbours.getContent()).setMark(true);
+                }else if(getCurrentVDistance(vertices, vertexDistance, currentVNeighbours.getContent()) > getNeighbourVDistance(vertices, vertexDistance, currentVNeighbours.getContent()) + getCurrentVDistance(vertices, vertexDistance, currentV)){
+                    vertexSetDistance(vertices, vertexDistance, currentVNeighbours.getContent(), currentV);
+                    g.getEdge(currentV, currentVNeighbours.getContent()).setMark(true);
                 }
             }
+
+            if(!g.allVerticesMarked()){
+                currentV = getSmallestUnmarkedVertex();
+            }
+
         }
 
 
@@ -80,17 +89,46 @@ public class Main {
         return true;
     }
 
-    public boolean vertexSetDistance(String[] vertices, int[] vertexDistance, Vertex currentV){
+    public void vertexSetDistance(String[] vertices, int[] vertexDistance, Vertex currentVNeighbour, Vertex currentV){
 
         for (int i = 0; i < vertices.length; i++) {
             if(vertices[i].equals(currentV.getID())){
                 if(vertexDistance[i] == 1000000){
-                    return false;
+                    vertexDistance[i] = getNeighbourVDistance(vertices, vertexDistance, currentVNeighbour) + getCurrentVDistance(vertices, vertexDistance, currentV);
                 }
             }
         }
+    }
 
-        return true;
+    public int getNeighbourVDistance(String[] vertices, int[] vertexDistance, Vertex currentVNeighbour){
+        for (int i = 0; i < vertexDistance.length; i++) {
+            if(vertices[i].equals(currentVNeighbour.getID())){
+                return vertexDistance[i];
+            }
+        }
+        
+        return -100000000;
+    }
+
+    public int getCurrentVDistance(String[] vertices, int[] vertexDistance, Vertex currentV){
+        for (int i = 0; i < vertexDistance.length; i++) {
+            if(vertices[i].equals(currentV.getID())){
+                return vertexDistance[i];
+            }
+        }
+        
+        return -100000000;
+    }
+
+    public Vertex getSmallestUnmarkedVertex(){
+        
+        
+
+        for (int i = 0; i < array.length; i++) {
+            
+        }
+        
+        return null;
     }
 
     public Graph addGraph(){
