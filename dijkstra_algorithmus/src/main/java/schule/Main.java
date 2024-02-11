@@ -24,12 +24,12 @@ public class Main {
 
         allVertices.toFirst();
         int help = 0;
+        
         while (allVertices.hasAccess()) {
             vertices[help] = allVertices.getContent().getID();
             help++;
             allVertices.next();
         }
-
         for (int i = 0; i < vertexDistance.length; i++) {
             if(vertices[i].equals(start.getID())){
                 vertexDistance[i] = 0;
@@ -37,14 +37,11 @@ public class Main {
                 vertexDistance[i] = 1000000;
             }
         }
-
         start.setMark(true);
         currentV = start;
-
         while (!g.allVerticesMarked()) {
             currentVNeighbours = g.getNeighbours(currentV);
-            currentVNeighbours.toFirst();
-            
+            currentVNeighbours.toFirst();     
             while (currentVNeighbours.hasAccess()) {
                 if (vertexHasDistance(vertices, vertexDistance, currentVNeighbours.getContent()) == false) {
                     vertexSetDistance(g, vertices, vertexDistance, currentVNeighbours.getContent(), currentV);
@@ -59,15 +56,11 @@ public class Main {
                 }
                 currentVNeighbours.next();
             }
-
             if(!g.allVerticesMarked()){
                 currentV = getSmallestUnmarkedVertex(g, vertices, vertexDistance);
                 currentV.setMark(true);
             }
         }
-
-
-        
         return readPath(allPaths);
     }
 
