@@ -14,8 +14,9 @@ public class Main {
     }
 
     public String dijkstra(Graph g, Vertex start, Vertex end){
-        List<Vertex> allVertices = new List<Vertex>();
+        List<Vertex> allVertices = g.getVertices();
         List<Vertex> currentVNeighbours;
+        List<Edge> allPaths = new List<Edge>();
         Vertex currentV;
         
         String[] vertices = new String[vertexListSize(allVertices)];
@@ -25,6 +26,7 @@ public class Main {
         int help = 0;
         while (allVertices.hasAccess()) {
             vertices[help] = allVertices.getContent().getID();
+            help++;
             allVertices.next();
         }
 
@@ -42,26 +44,31 @@ public class Main {
         while (!g.allVerticesMarked()) {
             currentVNeighbours = g.getNeighbours(currentV);
             currentVNeighbours.toFirst();
-
+            
             while (currentVNeighbours.hasAccess()) {
                 if (vertexHasDistance(vertices, vertexDistance, currentVNeighbours.getContent()) == false) {
-                    vertexSetDistance(vertices, vertexDistance, currentV, currentVNeighbours.getContent());
+                    vertexSetDistance(g, vertices, vertexDistance, currentVNeighbours.getContent(), currentV);
                     g.getEdge(currentV, currentVNeighbours.getContent()).setMark(true);
-                }else if(getCurrentVDistance(vertices, vertexDistance, currentVNeighbours.getContent()) > getNeighbourVDistance(vertices, vertexDistance, currentVNeighbours.getContent()) + getCurrentVDistance(vertices, vertexDistance, currentV)){
-                    vertexSetDistance(vertices, vertexDistance, currentVNeighbours.getContent(), currentV);
+                    allPaths.append(g.getEdge(currentV, currentVNeighbours.getContent()));
+                    	
+                }else if(getCurrentVDistance(vertices, vertexDistance, currentVNeighbours.getContent()) > getNeighbourVDistance(g, currentV, currentVNeighbours.getContent()) + getCurrentVDistance(vertices, vertexDistance, currentV)){
+                    vertexSetDistance(g, vertices, vertexDistance, currentVNeighbours.getContent(), currentV);
                     g.getEdge(currentV, currentVNeighbours.getContent()).setMark(true);
+                    allPaths.append(g.getEdge(currentV, currentVNeighbours.getContent()));
+                    removeMarkedPath(currentV, currentVNeighbours.getContent(), allPaths);
                 }
+                currentVNeighbours.next();
             }
 
             if(!g.allVerticesMarked()){
-                currentV = getSmallestUnmarkedVertex();
+                currentV = getSmallestUnmarkedVertex(g, vertices, vertexDistance);
+                currentV.setMark(true);
             }
-
         }
 
 
         
-        return null;
+        return readPath(allPaths);
     }
 
     public int vertexListSize(List<Vertex> list){
@@ -89,25 +96,19 @@ public class Main {
         return true;
     }
 
-    public void vertexSetDistance(String[] vertices, int[] vertexDistance, Vertex currentVNeighbour, Vertex currentV){
-
+    public void vertexSetDistance(Graph g, String[] vertices, int[] vertexDistance, Vertex currentVNeighbour, Vertex currentV){
         for (int i = 0; i < vertices.length; i++) {
-            if(vertices[i].equals(currentV.getID())){
+            if(vertices[i].equals(currentVNeighbour.getID())){
                 if(vertexDistance[i] == 1000000){
-                    vertexDistance[i] = getNeighbourVDistance(vertices, vertexDistance, currentVNeighbour) + getCurrentVDistance(vertices, vertexDistance, currentV);
+                    vertexDistance[i] = getNeighbourVDistance(g, currentV, currentVNeighbour) + getCurrentVDistance(vertices, vertexDistance, currentV);
+                    
                 }
             }
         }
     }
 
-    public int getNeighbourVDistance(String[] vertices, int[] vertexDistance, Vertex currentVNeighbour){
-        for (int i = 0; i < vertexDistance.length; i++) {
-            if(vertices[i].equals(currentVNeighbour.getID())){
-                return vertexDistance[i];
-            }
-        }
-        
-        return -100000000;
+    public int getNeighbourVDistance(Graph g,Vertex currentV, Vertex currentVNeighbour){
+        return (int)g.getEdge(currentV, currentVNeighbour).getWeight();
     }
 
     public int getCurrentVDistance(String[] vertices, int[] vertexDistance, Vertex currentV){
@@ -120,16 +121,52 @@ public class Main {
         return -100000000;
     }
 
-    public Vertex getSmallestUnmarkedVertex(){
+    public Vertex getSmallestUnmarkedVertex(Graph g, String[] vertices, int[] vertexDistance){
         
-        
+        int smallest = 1000000;
+        int index = 0;
 
-        for (int i = 0; i < array.length; i++) {
-            
+        for (int i = 0; i < vertices.length; i++) {
+            if(!g.getVertex(vertices[i]).isMarked()){
+                
+                if(vertexDistance[i] < smallest){
+                    smallest = vertexDistance[i];
+                    index = i;
+                }
+            }
         }
         
-        return null;
+        return g.getVertex(vertices[index]);
     }
+
+
+    public String readPath(List<Edge> eList) { // gib die gelaufenen Kanten
+
+        String pathString = "";
+        eList.toFirst();
+        while (eList.hasAccess()) {
+            pathString = pathString + eList.getContent().getVertices()[0].getID();
+            pathString = pathString + eList.getContent().getVertices()[1].getID();
+            
+            eList.next();
+            if(eList.hasAccess()){
+                pathString = pathString + "-";
+            }
+        }
+
+        return pathString;
+    }
+
+    public void removeMarkedPath(Vertex currentV, Vertex currentVNeighbour, List<Edge> allMarkedPaths){
+        allMarkedPaths.toFirst();
+        while (allMarkedPaths.hasAccess()) { // nicht richtig 
+            if((allMarkedPaths.getContent().getVertices()[0] != currentV && allMarkedPaths.getContent().getVertices()[1] != currentV) && (allMarkedPaths.getContent().getVertices()[0] == currentVNeighbour || allMarkedPaths.getContent().getVertices()[1] == currentVNeighbour)){
+                allMarkedPaths.remove();
+            }
+            allMarkedPaths.next();
+        }
+    }
+
 
     public Graph addGraph(){
         Graph g = new Graph();
